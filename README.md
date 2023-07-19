@@ -3,6 +3,8 @@ Different methods for analyzing microbiome data in a phyloseq data format
 
 Here, data is in phyloseq format - "Marissa_Osyter" (Oyster spelled wrong - don't blame me)
 
+Description of each script: 
+
 1. PCoA_MDS script - creating pseq and pseq.rel objects, generating composition plots and PCOA plots. Still need to learn how to run PERMANOVA tests (if possible when data is in phyloseq format)
 2. Plotting abundance phyloseq script - For plotting top # of microbiota and/or plotting specific microbiota. Code unable to filter out samples. Code is unable to generate boxplots (phyloseq objects cannot be coerced into data frame). Code can plot relative or total abundance.
 3. mb2021 network analysis - Attempting to generate code for network analysis using phyloseq microbiome data
