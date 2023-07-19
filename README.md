@@ -1,5 +1,5 @@
 # mb2021_phyloseq
-Different methods of analyzing microbiome data in a phyloseq data format
+Different methods for analyzing microbiome data in a phyloseq data format
 
 Here data in phyloseq format is "Marissa_Osyter" (Oyster spelled wrong - don't blame me)
 
