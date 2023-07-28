@@ -1,5 +1,10 @@
 ##mb2021 project: transfer Qiime data into R -> coordinates -> PCoA and MDS
 
+##quick lib (if you have packages downloaded)
+library("devtools")
+library(phyloseq)
+library(microbiome)
+
 
 install.packages("devtools")
 
@@ -29,21 +34,102 @@ library(microbiome)
 
 #load data
 
-Marissa_Osyter <- readRDS("~/mb2021/Marissa_Osyter.rds")
+setwd("~/Documents/USRA2021/mb2021/Data")
 
-Marissa_Osyter
+Marissa_Oyster <- readRDS("~/mb2021/Data/Marissa_Oyster.rds")
 
-#create objects
-
-OTU = Marissa_Osyter@otu_table
-Tax = Marissa_Osyter@tax_table
-Metadata = Marissa_Osyter@sam_data
-Tree = Marissa_Osyter@phy_tree
-
+Marissa_Oyster
 
 #create objects
 
-pseq <- Marissa_Osyter
+OTU = Marissa_Oyster@otu_table
+Tax = Marissa_Oyster@tax_table
+Metadata = Marissa_Oyster@sam_data
+Tree = Marissa_Oyster@phy_tree
+
+
+##rarify seqs to exclude seqs that contribute to less than 0.05% of abundance data
+
+physeq <- phyloseq(Marissa_Osyter)
+
+sequence_abundance <- taxa_sums(physeq)
+
+threshold <- 0.0005
+
+# Get the names of sequences that meet the threshold
+abundant_sequences <- names(sequence_abundance[sequence_abundance > threshold])
+
+# Filter out sequences not meeting the threshold and create a new phyloseq object
+physeq_rarified <- prune_taxa(abundant_sequences, physeq)
+
+##rarify data to make sequences an even depth
+
+Rare <-rarefy_even_depth(physeq_rarified, sample.size= 5000)
+
+##12 samples removedbecause they contained fewer reads than `sample.size`.
+##Up to first five removed samples are: 
+  
+#F1C3F1H3F2H3F2L1F2L3 (i.e., most of day 3)
+...
+#6397OTUs were removed because they are no longer 
+#present in any sample after random subsampling
+
+##check if seq depth is 5000
+
+sample_depths <- sample_sums(physeq)
+
+print(sample_depths)
+###sample depths = 5000, so we good
+
+
+##Only one sample from day 3 left - remove it from analysis 
+
+excluded_samples <- "F4L3"
+
+Rare_filtered <- Rare[, !colnames(Rare) %in% excluded_samples]
+
+# Convert the rarefied OTU matrix to a new phyloseq object and replace old OTU table in Marissa_Oyster data - Yay! I can tell it worked because sample number went from 63 to 50 (12 + 1 samples removed above)
+
+physeq_rarified <- phyloseq(otu_table(Rare_filtered))
+
+Marissa_Oyster@otu_table <- physeq_rarified
+
+
+# Save the modified marissa_oyster_data back to the RDS file
+
+saveRDS(Marissa_Oyster, "C:/Users/maris/OneDrive/Documents/USRA2021/mb2021/Data/Marissa_Oyster.rds")
+
+
+
+***********************************************************************************************************************************
+
+##error in Metadata data spat samples - Family not correct for some spat samples = cannot figure it out yet - below code not working
+
+# Assuming "Family" is a column in the sample data
+if ("sam_data" %in% names(Metadata)) {
+  # Access the sample data data frame
+  sample_data_df <- sample_data(Metadata)
+  
+  # Update the "Genetics" column in the sample data
+  sample_data_df$Family[sample_data_df$Family == 9] <- 1
+  
+  # Assign the modified sample data back to the phyloseq object
+  Metadata <- sample_data(Metadata) <- sample_data_df
+} else {
+  # Handle other cases if needed
+}
+
+
+# Save the modified data to a new .RDS file
+saveRDS(Marissa_Osyter, "~/mb2021/Marissa_Osyter.rds")  # Replace with the desired file path for the updated data
+
+
+********************************************************************************************************************************
+
+
+#create objects
+
+pseq <- Marissa_Oyster
 
 pseq_fam <- microbiome::aggregate_rare(pseq, level = "Family", detection = 50/100, prevalence = 70/100)
 
@@ -59,16 +145,32 @@ pseq.phy.rel <- microbiome::transform(pseq_phy, "compositional")
 
 pseq.gen.rel <- microbiome::transform(pseq_gen, "compositional")
 
+
+
 #PERMANOVA - source: https://microbiome.github.io/tutorials/PERMANOVA.html
 
 library(vegan)
-meta <- meta(pseq.rel)
-permanova <- adonis2(t(OTU) ~ Tank_treatment,
+meta <- meta(pseq.fam.rel)
+permanova <- adonis2(t(OTU) ~ Tank_treatment*Age*Family,
                      data = meta, permutations=999, method = "bray")
 
 # P-value
 print(as.data.frame(permanova$aov.tab)["Tank_treatment", "Pr(>F)"])
-##getting result "NULL"....? not working
+##results
+
+Tank_treatment             2   0.4914 0.03042  1.2230  0.155    
+Age                        2   5.1081 0.31623 12.7129  0.001 ***
+  Family                     1   0.3378 0.02091  1.6816  0.067 .  
+Tank_treatment:Age         4   1.6245 0.10057  2.0215  0.001 ***
+  Tank_treatment:Family      2   0.3997 0.02474  0.9947  0.401    
+Age:Family                 2   0.6468 0.04004  1.6096  0.030 *  
+  Tank_treatment:Age:Family  4   1.1158 0.06908  1.3885  0.037 *  
+  Residual                  32   6.4288 0.39800                   
+Total                     49  16.1529 1.00000                   
+---
+  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
 
 ##carrying on with compositional analysis
 
@@ -88,24 +190,14 @@ plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") + geom_point
 
 names(Data)[names(Data) == "treatment"] <- "Treatment"
 
-custom_color_palette <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00") # Example color palette
+custom_color_palette <- c("#E41A1C", "#4DAF4A", "#377EB8") # Example color palette
 
 plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") +
   geom_point(size = 4) +
   scale_color_manual(values = custom_color_palette, labels = c("Control", "High salinity", "Low salinity")) +
   scale_shape_manual(values = c("day_1" = 16, "day_18" = 17, "day_3" = 15, "spat" = 3), 
-                     labels = c("Day 1", "Day 18", "Day 3", "Spat"))
-
-##exlude day 3 data - issue = "NA" appears under tank_treatment legend
-
-filtered_data <- subset_samples(pseq, !grepl("day_3", Age))
-
-# Use plot_ordination with the filtered data
-plot_ordination(filtered_data, ord, color = "Tank_treatment", shape = "Age") +
-  geom_point(size = 4) +
-  scale_color_manual(values = custom_color_palette, labels = c("Control", "High salinity", "Low salinity")) +
-  scale_shape_manual(values = c("day_1" = 16, "day_18" = 17, "spat" = 3), 
                      labels = c("Day 1", "Day 18", "Spat"))
+
 
 
 ##Conical correspondance analysis
