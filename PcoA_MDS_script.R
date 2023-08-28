@@ -1,5 +1,5 @@
 ##mb2021 project: transfer Qiime data into R -> coordinates -> PCoA and MDS
-#test
+
 ##quick lib (if you have packages downloaded)
 library("devtools")
 library(phyloseq)
