@@ -6,20 +6,19 @@ library(microbiome)
 
 #load data
 
-Marissa_Osyter <- readRDS("~/mb2021/Marissa_Osyter.rds")
+pseq <-  Marissa_MU42022_rare
 
-Marissa_Osyter
 
-#create objects
-
-OTU = Marissa_Osyter@otu_table
-Tax = Marissa_Osyter@tax_table
-Metadata = Marissa_Osyter@sam_data
-Tree = Marissa_Osyter@phy_tree
 
 #create objects
 
-pseq <- Marissa_Osyter
+OTU = pseq@otu_table
+Tax = pseq@tax_table
+Metadata = pseq@sam_data
+Tree = pseq@phy_tree
+
+#create objects
+
 
 pseq_fam <- microbiome::aggregate_rare(pseq, level = "Family", detection = 50/100, prevalence = 70/100)
 
@@ -66,29 +65,35 @@ plot + scale_x_discrete(labels = c("Day 1", "Day 18", "Day 3", "Spat"))
 
 #Plot
 
-plot_bar(top5P, x="Tank_treatment", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
+plot_bar(top5P, x="Treatment", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
 
 
-plot_bar(top5P, x="Tank_treatment", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
-
+plot_bar(top5P, x="Treatment", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  
+  axis.text.y = element_text(size = 12),
+  strip.text = element_text(size = 11)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae"))
 
 
 ###PHYLUM LEVEL - instead of using pseq (total abundance) plot with pseq.fam.rel (relative abundance at Family level)
 
-top5P.names = sort(tapply(taxa_sums(pseq.fam.rel), tax_table(pseq.fam.rel)[, "Family"], sum), TRUE)[1:5]
+top5P.names = sort(tapply(taxa_sums(pseq.phy.rel), tax_table(pseq.phy.rel)[, "Phylum"], sum), TRUE)[1:5]
 
 #Cut down the physeq data to only the top 10 Phyla
 
-top5P = subset_taxa(pseq.fam.rel, Family %in% names(top5P.names))
+top5P = subset_taxa(pseq.phy.rel, Phylum %in% names(top5P.names))
 
-plot <- plot_bar(top5P, x = "Age", fill = "Family") +
-  geom_bar(aes(color = Family, fill = Family), stat = "identity", position = "stack")
 
-plot + scale_x_discrete(labels = c("Day 1", "Day 18", "Day 3", "Spat")) +
   labs(y = "Relative Abundance")
 
-
-
+  plot_bar(top5P, x="Treatment", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
+  
+  
+  plot_bar(top5P, x="Treatment", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  
+    axis.text.y = element_text(size = 12),
+    strip.text = element_text(size = 12)   
+  ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Relative abundance", x = " ")
 
 
 ##FAMILY LEVEL - plot bar by treatment 
@@ -103,11 +108,13 @@ top5P = subset_taxa(pseq, Family %in% names(top5P.names))
 
 #Plot
 
-p <- plot_bar(top5P, x="Tank_treatment", fill="Family", facet_grid = ~Family) + geom_bar(aes(color=Family, fill=Family), stat="identity", position="stack")
+plot_bar(top5P, x="Treatment", fill="Family", facet_grid = ~Age) + geom_bar(aes(color=Family, fill=Family), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  
+  axis.text.y = element_text(size = 12),
+  strip.text = element_text(size = 12)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-p <- p + scale_x_discrete(labels = c("Control", "HS", "LS")) + theme(axis.text.x = element_text(size = 20)) 
 
-p
 
 #FAMILY LEVEL - plot by bar by treatment and plot relative abundance
 
@@ -117,11 +124,12 @@ top5P.names = sort(tapply(taxa_sums(pseq.fam.rel), tax_table(pseq.fam.rel)[, "Fa
 
 top5P = subset_taxa(pseq.fam.rel, Family %in% names(top5P.names))
 
-plot <- plot_bar(top5P, x = "Tank_treatment", fill = "Family") +
-  geom_bar(aes(color = Family, fill = Family), stat = "identity", position = "stack")
+plot_bar(top5P, x="Treatment", fill="Family", facet_grid = ~Age) + geom_bar(aes(color=Family, fill=Family), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  
+  axis.text.y = element_text(size = 12),
+  strip.text = element_text(size = 12)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Relative abundance", x = " ")
 
-plot + scale_x_discrete(labels = c("Control", "HS", "LS")) +
-  labs(y = "Relative Abundance")
 
 
 ###GENUS LEVEL - sort by treatment
@@ -134,30 +142,24 @@ top15P = subset_taxa(pseq, Genus %in% names(top15P.names))
 
 #Plot
 
-"Treatment" = "Tank_treatment"
 
-plot_bar(top15P, x="Tank_treatment", fill="Genus") + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")
+plot_bar(top15P, x="Treatment", fill="Genus", facet_grid = ~Genus) + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 10),  
+  axis.text.y = element_text(size = 10),
+  strip.text = element_text(size = 10)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
+#plot specific family
 
-p <- plot_bar(top15P, x="Tank_treatment", fill="Genus", facet_grid = ~Genus) + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack")
+family_to_plot <- "Rhodobacteraceae"
+pseq_filtered <- subset_taxa(pseq, Family == family_to_plot)
 
-p <- p + scale_x_discrete(labels = c("Control", "HS", "LS"))
-
-
-p <- p + theme(text = element_text(size = 14))
-
-
-##GENUS LEVEL - sort by treatment and do reltive abundance
-
-top15P = subset_taxa(pseq.gen.rel, Genus %in% names(top15P.names))
-
-plot <- plot_bar(top15P, x = "Tank_treatment", fill = "Genus") +
-  geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack")
-
-plot + scale_x_discrete(labels = c("Control", "HS", "LS")) +
-  labs(y = "Relative Abundance")
-
-
+plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 10),  
+  axis.text.y = element_text(size = 10),
+  strip.text = element_text(size = 10)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ", title = "Rhodobacteraceae") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 ##PLOT SPECIFIC GENUS 
@@ -166,46 +168,61 @@ plot + scale_x_discrete(labels = c("Control", "HS", "LS")) +
 
 # Filter data for only "Flavobacterium" genus
 genus_to_plot <- "Flavobacterium"
-pseq_filtered <- subset_taxa(pseq_gen, Genus == genus_to_plot)
+pseq_filtered <- subset_taxa(pseq, Genus == genus_to_plot)
 
 # Create the bar plot for "Flavobacterium" abundance between different "Tank_treatments"
-plot <- plot_bar(pseq_filtered, x = "Tank_treatment", fill = "Genus") +
+plot <- plot_bar(pseq_filtered, x = "Treatment", fill = "Genus") +
   geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack")
 
-# Modify the color palette for fill and color aesthetics
-plot + scale_x_discrete(labels = c("Control", "HS", "LS")) +
-  labs(y = "Relative Abundance")
+plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 10),  
+  axis.text.y = element_text(size = 10),
+  strip.text = element_text(size = 10)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-plot <- plot_bar(pseq_filtered, x = "Tank_treatment", fill = "Genus") +
-  geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack") +
-  scale_x_discrete(labels = c("Control", "HS", "LS")) +
-  labs(y = "Relative Abundance")
 
-# Rotate x-axis labels to be horizontal
-plot + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
+#START WITH Celeribacter
 
+genus_to_plot <- "Celeribacter"
+pseq_filtered <- subset_taxa(pseq, Genus == genus_to_plot)
+
+# Create the bar plot for "Flavobacterium" abundance between different "Tank_treatments"
+plot <- plot_bar(pseq_filtered, x = "Treatment", fill = "Genus") +
+  geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack")
+
+plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 10),  
+  axis.text.y = element_text(size = 10),
+  strip.text = element_text(size = 10)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
+
+#START WITH Phaeobacter
+
+genus_to_plot <- "Phaeobacter"
+pseq_filtered <- subset_taxa(pseq, Genus == genus_to_plot)
+
+# Create the bar plot for "Flavobacterium" abundance between different "Tank_treatments"
+plot <- plot_bar(pseq_filtered, x = "Treatment", fill = "Genus") +
+  geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack")
+
+plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 10),  
+  axis.text.y = element_text(size = 10),
+  strip.text = element_text(size = 10)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
 ##Vibrio
 
 # Filter data for only "Vibrio" genus
 genus_to_plot <- "Vibrio"
-pseq_filtered <- subset_taxa(pseq_gen, Genus == genus_to_plot)
+pseq_filtered <- subset_taxa(pseq, Genus == genus_to_plot)
 
-# Create the bar plot for "Vibrio" abundance between different "Tank_treatments"
-plot <- plot_bar(pseq_filtered, x = "Tank_treatment", fill = "Genus") +
-  geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack")
+plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 10),  
+  axis.text.y = element_text(size = 10),
+  strip.text = element_text(size = 10)   
+) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-# Modify the color palette for fill and color aesthetics
-plot + scale_x_discrete(labels = c("Control", "HS", "LS")) +
-  labs(y = "Relative Abundance")
-
-plot <- plot_bar(pseq_filtered, x = "Tank_treatment", fill = "Genus") +
-  geom_bar(aes(color = Genus, fill = Genus), stat = "identity", position = "stack") +
-  scale_x_discrete(labels = c("Control", "HS", "LS")) +
-  labs(y = "Relative Abundance")
-
-# Rotate x-axis labels to be horizontal
-plot + theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 
 ##remove sample F2H1 - 10X outlier
 

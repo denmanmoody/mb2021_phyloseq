@@ -34,23 +34,23 @@ library(microbiome)
 
 #load data
 
-setwd("~/Documents/USRA2021/mb2021/Data")
+setwd("C:/Users/maris/OneDrive/Documents/MSc/MU42022_16S/MU42022")
 
-Marissa_Oyster <- readRDS("~/mb2021/Data/Marissa_Oyster.rds")
+pseq <- Marissa_MU42022_rare
 
-Marissa_Oyster
+
 
 #create objects
 
-OTU = Marissa_Oyster@otu_table
-Tax = Marissa_Oyster@tax_table
-Metadata = Marissa_Oyster@sam_data
-Tree = Marissa_Oyster@phy_tree
+OTU = pseq@otu_table
+Tax = pseq@tax_table
+Metadata = pseq@sam_data
+Tree = pseq@phy_tree
 
 
 ##rarify seqs to exclude seqs that contribute to less than 0.05% of abundance data
 
-physeq <- phyloseq(Marissa_Osyter)
+physeq <- phyloseq(pseq)
 
 sequence_abundance <- taxa_sums(physeq)
 
@@ -150,8 +150,17 @@ pseq.gen.rel <- microbiome::transform(pseq_gen, "compositional")
 #PERMANOVA - source: https://microbiome.github.io/tutorials/PERMANOVA.html
 
 library(vegan)
-meta <- meta(pseq.fam.rel)
-permanova <- adonis2(t(OTU) ~ Tank_treatment*Age*Family,
+
+##remove factors with "NA" (i.e., algae)
+sum(is.na(meta))
+meta <- na.omit(meta)
+
+excluded_samples <-  c("A-1", "A-15", "A-3", "A-6")
+
+OTU_filtered <- OTU[, !colnames(OTU) %in% excluded_samples]
+
+
+permanova <- adonis2(t(OTU_filtered) ~ Treatment*Age*Genetics,
                      data = meta, permutations=999, method = "bray")
 
 # P-value
