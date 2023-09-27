@@ -1,10 +1,18 @@
-##mb2021 project: transfer Qiime data into R -> coordinates -> PCoA and MDS
+##Description ----
+#This script is for microbiome analysis using the microbiome and phyloseq packages
+#Data should be within an RDS matrix containing Sample data (Metadata), OTU table, Tax table, and phylogenetic tree (optional)
+#written by Marissa but adapted from code from Andy Loudon.
+#Sept 19th, 2023.
 
-##quick lib (if you have packages downloaded)
+##Quick lib ---- 
+#(if you have packages downloaded already)
+
 library("devtools")
 library(phyloseq)
 library(microbiome)
+library(vegan)
 
+# Packages ----
 
 install.packages("devtools")
 
@@ -32,21 +40,21 @@ BiocManager::install("microbiome")
 ##update all changes
 library(microbiome)
 
-#load data
+#Load and name data ----
 
-setwd("C:/Users/maris/OneDrive/Documents/MSc/MU42022_16S/MU42022")
+setwd("/Users/maris/OneDrive/Documents/MSc/MU42022_16S")
 
-pseq <- Marissa_MU42022_rare
+pseq <- readRDS("Marissa_MU42022_rare.rds")
 
-
-
-#create objects
+#Create objects ----
 
 OTU = pseq@otu_table
 Tax = pseq@tax_table
 Metadata = pseq@sam_data
 Tree = pseq@phy_tree
 
+#Rarify data ----
+#Only do this if rarefication has not already been done.
 
 ##rarify seqs to exclude seqs that contribute to less than 0.05% of abundance data
 
@@ -82,27 +90,27 @@ print(sample_depths)
 ###sample depths = 5000, so we good
 
 
+
+#Removal of samples (if needed) ----
+
 ##Only one sample from day 3 left - remove it from analysis 
 
-excluded_samples <- "F4L3"
+Rare_filtered <- subset_samples(Rare, !Library_Name %in% "F4L3")
 
-Rare_filtered <- Rare[, !colnames(Rare) %in% excluded_samples]
+# Save the modified marissa_oyster back to the RDS file - replace Marissa_Oyster with desired file name
 
-# Convert the rarefied OTU matrix to a new phyloseq object and replace old OTU table in Marissa_Oyster data - Yay! I can tell it worked because sample number went from 63 to 50 (12 + 1 samples removed above)
-
-physeq_rarified <- phyloseq(otu_table(Rare_filtered))
-
-Marissa_Oyster@otu_table <- physeq_rarified
-
-
-# Save the modified marissa_oyster_data back to the RDS file
+Marissa_oyster <- Rare_filtered
 
 saveRDS(Marissa_Oyster, "C:/Users/maris/OneDrive/Documents/USRA2021/mb2021/Data/Marissa_Oyster.rds")
 
+##save new rds file
+
+saveRDS(Rare_filtered, file = "/Users/maris/OneDrive/Documents/USRA2021/mb2021/Rare_filtered_data.rds")
 
 
 ***********************************************************************************************************************************
-
+#Error MB2021 metadata ----
+  
 ##error in Metadata data spat samples - Family not correct for some spat samples = cannot figure it out yet - below code not working
 
 # Assuming "Family" is a column in the sample data
@@ -127,9 +135,7 @@ saveRDS(Marissa_Osyter, "~/mb2021/Marissa_Osyter.rds")  # Replace with the desir
 ********************************************************************************************************************************
 
 
-#create objects
-
-pseq <- Marissa_Oyster
+#Create pseq objects ----
 
 pseq_fam <- microbiome::aggregate_rare(pseq, level = "Family", detection = 50/100, prevalence = 70/100)
 
@@ -145,47 +151,47 @@ pseq.phy.rel <- microbiome::transform(pseq_phy, "compositional")
 
 pseq.gen.rel <- microbiome::transform(pseq_gen, "compositional")
 
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
 
 
-#PERMANOVA - source: https://microbiome.github.io/tutorials/PERMANOVA.html
 
-library(vegan)
-
-##remove factors with "NA" (i.e., algae)
-sum(is.na(meta))
-meta <- na.omit(meta)
-
-excluded_samples <-  c("A-1", "A-15", "A-3", "A-6")
-
-OTU_filtered <- OTU[, !colnames(OTU) %in% excluded_samples]
+#PERMANOVA ----
+#source: https://microbiome.github.io/tutorials/PERMANOVA.html
 
 
-permanova <- adonis2(t(OTU_filtered) ~ Treatment*Age*Genetics,
+#if any columns have missing values (NA), must remove
+
+pseq_filtered <- subset_samples(pseq.fam.rel, !Treatment %in% "NA")
+
+Meta <- subset(Metadata, !is.na(Treatment))
+
+
+Meta <- meta(pseq.fam.rel)
+permanova <- adonis2(t(OTU) ~ Treatment*Age*Genetics,
                      data = meta, permutations=999, method = "bray")
 
 # P-value
 print(as.data.frame(permanova$aov.tab)["Tank_treatment", "Pr(>F)"])
 ##results
 
-Tank_treatment             2   0.4914 0.03042  1.2230  0.155    
-Age                        2   5.1081 0.31623 12.7129  0.001 ***
-  Family                     1   0.3378 0.02091  1.6816  0.067 .  
-Tank_treatment:Age         4   1.6245 0.10057  2.0215  0.001 ***
-  Tank_treatment:Family      2   0.3997 0.02474  0.9947  0.401    
-Age:Family                 2   0.6468 0.04004  1.6096  0.030 *  
-  Tank_treatment:Age:Family  4   1.1158 0.06908  1.3885  0.037 *  
-  Residual                  32   6.4288 0.39800                   
-Total                     49  16.1529 1.00000                   
+Df SumOfSqs      R2       F Pr(>F)    
+Tank_treatment             2   0.5143 0.03126  1.2134  0.183    
+Age                        2   4.9589 0.30138 11.7000  0.001 ***
+  Family                     1   0.3482 0.02116  1.6433  0.061 .  
+Tank_treatment:Age         4   1.6320 0.09919  1.9253  0.001 ***
+  Tank_treatment:Family      2   0.4108 0.02497  0.9692  0.457    
+Age:Family                 2   0.6633 0.04031  1.5650  0.037 *  
+  Tank_treatment:Age:Family  4   1.1450 0.06959  1.3507  0.041 *  
+  Residual                  32   6.7814 0.41215                   
+Total                     49  16.4538 1.00000                   
 ---
   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 
 
 ##carrying on with compositional analysis
-
-pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
-
-pseq.core <- microbiome::transform(pseq.core, "compositional")
 
 set.seed(4235421)
 
@@ -205,7 +211,7 @@ plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") +
   geom_point(size = 4) +
   scale_color_manual(values = custom_color_palette, labels = c("Control", "High salinity", "Low salinity")) +
   scale_shape_manual(values = c("day_1" = 16, "day_18" = 17, "day_3" = 15, "spat" = 3), 
-                     labels = c("Day 1", "Day 18", "Spat"))
+                     labels = c("Day 1", "Day 18", "Spat")) + theme_bw()
 
 
 
@@ -295,7 +301,7 @@ kable(head(tab))
 p.shannon <- boxplot_alpha(pseq, 
                            index = "shannon",
                            x_var = "Tank_treatment")
-p.shannon <- p.shannon +
+p <- p.shannon +
     theme_minimal() +
     labs(x = "", y = "Shannon diversity") +
     theme(
@@ -304,9 +310,9 @@ p.shannon <- p.shannon +
         legend.text = element_text(size = 20),
         legend.title = element_text(size = 20)
     ) +
-    scale_x_discrete(labels = c("Control", "High salinity", "Low salinity"))                          
+    scale_x_discrete(labels = c("Control", "High Salinity", "Low Salinity"))                          
 
-p.shannon <- p.shannon +
+p <- p.shannon +
     theme_minimal() +
     labs(x = "", y = "Shannon diversity") +
     theme(
@@ -315,9 +321,9 @@ p.shannon <- p.shannon +
         legend.text = element_text(size = 16),
         legend.title = element_text(size = 16, face = "bold")  # Modify legend title properties
     ) +
-    guides(fill = guide_legend(title = "Seawater treatment"))
+    scale_x_discrete(labels = c("Control", "High Salinity", "Low Salinity"))  
 
-p.shannon
+p
 
 ##make text bold
 
@@ -353,7 +359,7 @@ p.shannon <- p.shannon +
         legend.text = element_text(size = 20),
         legend.title = element_text(size = 20)
     ) +
-    scale_x_discrete(labels = c("Day 1", "Day 18", "Day 3", "Spat"))
+    scale_x_discrete(labels = c("Day 1", "Day 18", "Spat"))
     
 p.shannon
 
@@ -371,7 +377,7 @@ print(pv)
 # Adjust the p-value
 padj <- p.adjust(pv)
 print(padj)
-##non-signif (p value = 0.9761322)
+##non-signif (p value = 0.7924826)
 
 #testing for differences in alpha diversity by Age - non-parametric Kolmogorov-Smirnov test
 # Construct the data
@@ -380,12 +386,12 @@ d$diversity <- microbiome::diversity(pseq, "shannon")$shannon
 # Split the values by group
 spl <- split(d$diversity, d$Age)
 # Kolmogorov-Smironv test
-pv <- ks.test(spl$day_1, spl$day_3, spl$day_18, spl$spat)$p.value
+pv <- ks.test(spl$day_1, spl$day_18, spl$spat)$p.value
 print(pv)
 # Adjust the p-value
 padj <- p.adjust(pv)
 print(padj)
-##signif difference in alpha diversity between ages (p value = 0.002749572)
+##signif difference in alpha diversity between ages (p value = 0.006993007)
 
 #moving on to community structure
 
