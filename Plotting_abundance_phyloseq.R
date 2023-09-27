@@ -1,16 +1,19 @@
 ###top phylum/family/genera within microbiome data
+##bar plots and violin plots
+
+#Quick lib ----
 
 library("devtools")
 library(phyloseq)
 library(microbiome)
 
-#load data
+#Load data ----
+
 
 pseq <-  Marissa_MU42022_rare
 
 
-
-#create objects
+#Create objects ----
 
 OTU = pseq@otu_table
 Tax = pseq@tax_table
@@ -34,14 +37,22 @@ pseq.phy.rel <- microbiome::transform(pseq_phy, "compositional")
 
 pseq.gen.rel <- microbiome::transform(pseq_gen, "compositional")
 
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+
+
 #source for below: https://rstudio-pubs-static.s3.amazonaws.com/330760_8bba830836324bf6b100d4e76f49e3d2.html#other_visualizations 
 
-##bar plots and heat map tutorial
 
+#Bar plots ----
+
+#PHYLUM LEVEL ----
 
 ##STARTING AT PHYLUM LEVEL - TOTAL ABUNDANCE
 
-plot_bar(pseq.tree, fill="Phylum")
+plot_bar(pseq, fill="Phylum")
 
 #Sort the Phyla by abundance and pick the top 5
 
@@ -55,10 +66,12 @@ top5P = subset_taxa(pseq, Phylum %in% names(top5P.names))
 
 plot_bar(top5P, x="Age", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
 
+plot_bar(top5P, x="Age", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack")
+
 ##code to change x-axis labels
 
 plot <- plot_bar(top5P, x = "Age", fill = "Phylum") +
-  geom_bar(aes(color = Phylum, fill = Phylum), stat = "identity", position = "stack")
+  geom_boxplot(aes(color = Phylum, fill = Phylum), stat = "identity", position = "stack")
 
 plot + scale_x_discrete(labels = c("Day 1", "Day 18", "Day 3", "Spat"))
 
@@ -74,6 +87,21 @@ plot_bar(top5P, x="Treatment", fill="Phylum", facet_grid = ~Phylum) + geom_bar(a
   strip.text = element_text(size = 11)   
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae"))
 
+plot_bar(top5P, x="Treatment", fill="Phylum", facet_grid = ~Phylum) + 
+  geom_boxplot(aes(color=Phylum, fill=Phylum), 
+  stat="identity", 
+  position="stack") 
++ theme_bw() 
++ theme(panel.grid = element_blank()) 
++ theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
++ theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  
+  axis.text.y = element_text(size = 12),
+  strip.text = element_text(size = 11)   
+)
+
+
+
+#Phylum relative abundance ----
 
 ###PHYLUM LEVEL - instead of using pseq (total abundance) plot with pseq.fam.rel (relative abundance at Family level)
 
@@ -96,7 +124,7 @@ top5P = subset_taxa(pseq.phy.rel, Phylum %in% names(top5P.names))
   ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Relative abundance", x = " ")
 
 
-##FAMILY LEVEL - plot bar by treatment 
+#FAMILY LEVEL ----
 
 #Sort the Phyla by abundance and pick the top 5
 
@@ -114,7 +142,11 @@ plot_bar(top5P, x="Treatment", fill="Family", facet_grid = ~Age) + geom_bar(aes(
   strip.text = element_text(size = 12)   
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-
+plot_bar(top5P, x="Treatment", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
+  axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  
+  axis.text.y = element_text(size = 12),
+  strip.text = element_text(size = 11)   
+)plot_
 
 #FAMILY LEVEL - plot by bar by treatment and plot relative abundance
 
@@ -132,7 +164,8 @@ plot_bar(top5P, x="Treatment", fill="Family", facet_grid = ~Age) + geom_bar(aes(
 
 
 
-###GENUS LEVEL - sort by treatment
+#GENUS LEVEL----
+#- sort by treatment
 
 top15P.names = sort(tapply(taxa_sums(pseq), tax_table(pseq)[, "Genus"], sum), TRUE)[1:15]
 
@@ -164,7 +197,7 @@ plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus,
 
 ##PLOT SPECIFIC GENUS 
 
-#START WITH FLAVOBACTERIUM
+###Flavobacterium ----
 
 # Filter data for only "Flavobacterium" genus
 genus_to_plot <- "Flavobacterium"
@@ -181,7 +214,7 @@ plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus,
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
 
-#START WITH Celeribacter
+###Celeribacter ----
 
 genus_to_plot <- "Celeribacter"
 pseq_filtered <- subset_taxa(pseq, Genus == genus_to_plot)
@@ -196,7 +229,7 @@ plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus,
   strip.text = element_text(size = 10)   
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-#START WITH Phaeobacter
+###Phaeobacter ----
 
 genus_to_plot <- "Phaeobacter"
 pseq_filtered <- subset_taxa(pseq, Genus == genus_to_plot)
@@ -211,7 +244,7 @@ plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus,
   strip.text = element_text(size = 10)   
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-##Vibrio
+###Vibrio ----
 
 # Filter data for only "Vibrio" genus
 genus_to_plot <- "Vibrio"
@@ -224,56 +257,3 @@ plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus,
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
 
-##remove sample F2H1 - 10X outlier
-
-# Genus to plot
-genus_to_plot <- "Vibrio"
-pseq_filtered <- subset_taxa(pseq_gen, Genus == genus_to_plot)
-
-#Need to remove F2H1 sample (Vibrio 10X outlier - will have to exclude prior to building pseq)
-
-
-
-
-
-
-
-
-###NEXT SECTION - HEATMAPS (TOP ## OTU'S)
-
-#Sort the OTUs by abundance and pick the top 20
-top20OTU.names = names(sort(taxa_sums(pseq.fam.rel), TRUE)[1:20])
-
-#Cut down the physeq.tree data to only the top 10 Phyla
-top20OTU = prune_taxa(top20OTU.names, pseq.fam.rel)
-
-top20OTU
-
-plot_heatmap(top20OTU)
-
-plot_heatmap(top20OTU, sample.label="Age", sample.order="Age")
-
-plot_heatmap(top20OTU, sample.label="Age", sample.order="Age", taxa.label="Phylum", taxa.order="Family", low="white", high="purple", na.value="grey")
-
-plot_heatmap(top20OTU, "NMDS", "bray", title="Bray-Curtis")
-
-
-plot_heatmap(top20OTU, sample.label="Tank_treatment", sample.order="Tank_treatment")
-
-
-plot_heatmap(top20OTU, "NMDS", "bray", title="Bray-Curtis", ample.label="Tank_treatment", sample.order="Tank_treatment")
-
-
-##I want to look at heatmap of only larval samples
-
-# Exclude specific data from top20OTU object
-
-top20OTU = prune_taxa(top20OTU.names, pseq.fam.rel)
-
-top20OTU
-
-excluded_samples <- c("T10r1", "T10r2", "T10r3", "T11r1", "T11r3", "T12r1", "T12r2", "T12r3", "T13r1","T13r2","T13r3", "T14r1", "T14r2", "T15r1", "T15r2", "T16r1", "T16r2", "T16r3", "T1r1", "T1r2", "T1r3", "T2r1", "T2r3", "T3r1", "T3r2", "T3r3", "T4r1", "T4r2", "T9r1", "T9r3", "T11r2", "T14r3", "T2r2")
-
-top20OTU <- prune_samples(!(sample_names(top20OTU) %in% excluded_samples), top20OTU)
-
-plot_heatmap(top20OTU, sample.label="Tank_treatment", sample.order="Tank_treatment")

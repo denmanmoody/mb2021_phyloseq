@@ -44,7 +44,9 @@ library(microbiome)
 
 setwd("/Users/maris/OneDrive/Documents/MSc/MU42022_16S")
 
-pseq <- readRDS("Marissa_MU42022_rare.rds")
+pseq <- readRDS("James_MU42022.rds")
+
+pseq <- James_MU42022
 
 #Create objects ----
 
@@ -95,7 +97,9 @@ print(sample_depths)
 
 ##Only one sample from day 3 left - remove it from analysis 
 
-Rare_filtered <- subset_samples(Rare, !Library_Name %in% "F4L3")
+Rare_filtered <- subset_samples(pseq, !Organism %in% "Algae")
+
+Rare_filtered <- subset_samples(Rare_filtered, !Age %in% c("Day 08", "Day 10"))
 
 # Save the modified marissa_oyster back to the RDS file - replace Marissa_Oyster with desired file name
 
@@ -170,7 +174,7 @@ Meta <- subset(Metadata, !is.na(Treatment))
 
 Meta <- meta(pseq.fam.rel)
 permanova <- adonis2(t(OTU) ~ Treatment*Age*Genetics,
-                     data = meta, permutations=999, method = "bray")
+                     data = pseq.fam.rel, permutations=999, method = "bray")
 
 # P-value
 print(as.data.frame(permanova$aov.tab)["Tank_treatment", "Pr(>F)"])
@@ -197,9 +201,9 @@ set.seed(4235421)
 
 ord <- ordinate(pseq, "MDS", "bray")
 
-#plot MDS/PcoA
+#plot MDS/PcoA ----
 
-plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") + geom_point(size = 4)
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
 
 ##change colour palette for PCOA plot
 
@@ -215,7 +219,7 @@ plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") +
 
 
 
-##Conical correspondance analysis
+##Conical correspondance analysis ----
 ##source; https://microbiome.github.io/tutorials/Ordination.html
 Kindly cite this work as follows: "Leo Lahti, Sudarshan Shetty et al. (2017). Tools for microbiome analysis in R. Version . URL: http://microbiome.github.com/microbiome. Check also the relevant references listed in the manual page of each function.
 
@@ -240,7 +244,8 @@ plot_ordination(pseq, pseq.cca,
                 type = "split", shape = "Tank_treatment", 
                 color = "Phylum", label = "Tank_treatment")
 
-#t-SNE
+#T-SNE ----
+
 
 library(vegan)
 library(microbiome)
@@ -275,7 +280,8 @@ library(knitr)
 tab <-microbiome::alpha(pseq, index = "all")
 kable(head(tab))
 
-#Richness
+#Richness ----
+
 tab <- richness(pseq)
 kable(head(tab))
 

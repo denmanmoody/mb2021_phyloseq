@@ -58,7 +58,7 @@ plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") +
 # Remove spat", day 18 samples from the phyloseq object - watch, the subset samples fxn is case sensitive
 #DAY 1 ONLY
 
-pseq_filtered <- subset_samples(Marissa_Oyster, !(Age %in% c("spat", "day_18")))
+pseq_filtered <- subset_samples(pseq, !(Age %in% c("Day 03", "Day 06", "Day 08", "Day 10", "Day 15")))
 
 
 pseq_fam <- microbiome::aggregate_rare(pseq_filtered, level = "Family", detection = 50/100, prevalence = 70/100)
@@ -76,14 +76,14 @@ ord <- ordinate(pseq_filtered, "MDS", "bray")
 
 #plot MDS/PcoA
 
-plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") + geom_point(size = 4)
+plot_ordination(pseq_filtered, ord, color = "Treatment", shape = "Age") + geom_point(size = 4) + theme_classic()
 
-plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") +
+plot_ordination(pseq_filtered, ord, color = "Treatment", shape = "Age") +
   geom_point(size = 4) +
-  ggalt::geom_encircle(aes(fill = Tank_treatment), color = "black", expand = 0.2, alpha = 0.2) +
-  scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8"), labels = c("Control", "High Salinity", "Low Salinity")) +
-  scale_shape_manual(values = c("day_1" = 16), 
-                     labels = c("Day 1")) + theme_bw()
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8", "orange", "purple"), labels = c("Antibiotics", "Antibiotics + HT", "Control", "High temperature (HT)", "Algae")) +
+  scale_shape_manual(values = c("Day 01" = 16), 
+                     labels = c("Day 01")) + theme_bw()
 
 
 
