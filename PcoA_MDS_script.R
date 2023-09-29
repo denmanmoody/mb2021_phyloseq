@@ -2,7 +2,7 @@
 #This script is for microbiome analysis using the microbiome and phyloseq packages
 #Data should be within an RDS matrix containing Sample data (Metadata), OTU table, Tax table, and phylogenetic tree (optional)
 #written by Marissa but adapted from code from Andy Loudon.
-#Sept 19th, 2023.
+#Sept 29th, 2023.
 
 ##Quick lib ---- 
 #(if you have packages downloaded already)
