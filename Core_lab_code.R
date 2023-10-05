@@ -30,6 +30,7 @@ pseq <- Marissa_MU42022_rare
 New_object_name_SELECT<- subset_samples(pseq, Type == "Anenome")
 New_object_name_REMOVE<-subset_samples(pseq, Type != "Anenome")
 
+
 #Day 1 only ----
   
 pseq <- subset_samples(pseq, !Age %in% c("Spat", "Day 03", "Day 06", "Day 15"))
@@ -63,17 +64,19 @@ transform <- microbiome::transform
 
 pseq <- transform(pseq, "compositional")
 #Look at a specific level of taxonomy: must be over 1% relative abundance and found in half of samples (otherwise too messy)
-pseq <- aggregate_rare(pseq, level = "phylum", detection = 1/100, prevalence = 50/100)
+pseq <- aggregate_rare(pseq, level = "Phylum", detection = 1/100, prevalence = 50/100)
 ##Plot
 Comp<- plot_composition(pseq, otu.sort = "abundance")
 Comp
+
+
 #Question 2: What does your plot show you? 
 
 ############Calculate Core###########››
 #######Just to name Core
 #Notice I'm not looking at all of the samples. So this is from different filtering than the above sample
 #Make  compositional 
-ps.rel <- microbiome::transform(New_object_name_SELECT, "compositional")
+ps.rel <- microbiome::transform(pseq, "compositional")
 ## For below, must be 1% rel abund or more and in 90% of samples. The object that is made tells you the names of the ASVs that fit that criteria (this can be helpful later for your scholar search)
 core.taxa.standard_90 <- core_members(ps.rel, detection = 1/100, prevalence = 90/100)
 
@@ -91,18 +94,29 @@ Core2<- psmelt(Core1)
 
 #### To better understand our data we can combine the ASV number (that links to a specific DNA sequence) to the  genus of that particular ASV. The following code does that with the mutate function. 
 library(dplyr)
- 
- Core3<- mutate(Core2, asv_gen= paste0(OTU, "-",genus))
-##Plot core
+
+#note Genus case sensitive
+
+Core3<- mutate(Core2, asv_gen= paste0(OTU, "-", Family))
 
 
-
+##Plot core ----
 
 #######Make plot with ggplot with better ASV names_ you can also use any of your meta data to collapse samples into groups. 
  head(Core3)
-Best_plot<- ggplot(Core3, aes(x=Sample, y = Abundance, fill= asv_gen)) +geom_bar(stat="identity")
+Best_plot<- ggplot(Core3, aes(x=Age, y = Abundance, fill= asv_gen)) +geom_bar(stat="identity") + theme_classic()
+
+Best_plot<- ggplot(Core3, aes(x=Treatment, y = Abundance, fill= asv_gen)) +geom_bar(stat="identity") + theme_classic()
+
 
 ##Collapsed 
-Best_plot_collapsed<- ggplot(Core3, aes(x=Type, y = Abundance, fill= asv_gen)) +geom_bar(stat="summary")
+Best_plot_collapsed<- ggplot(Core3, aes(x=Age, y = Abundance, fill= asv_gen, facet_grid(asv_gen))) +geom_bar(stat="summary", position = "fill") + theme_bw()
+
+Best_plot_collapsed
+
+ +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 ###Question 5: Not a question, but: Save a plot or multiple plots for your poster!
 ###Question 6: Search for at least two core in google scholar? Do those bacteria show up in  your search? If so where? It is worth spending a few minutes trying to figure out where the bacteria in your core are found. The environment? Other hosts? Same host? 

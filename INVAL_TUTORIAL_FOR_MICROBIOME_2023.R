@@ -2,6 +2,10 @@
 
 ### Source:  https://jkzorz.github.io/2019/07/02/Indicator-species-analysis.html 
 
+
+#to look for differentially abundant ASVs using indicator species analysis
+
+
 #Packages ----
 
 install.packages("indicspecies")
@@ -34,6 +38,12 @@ data_table <- read.csv("data_table.csv")
 
 pc_FUN = read.csv("data_table.csv", header= TRUE)
 
+#if removing samples ----
+
+#look at day 01 treatment
+
+pc_FUN <- data_table[data_table$Age == "Day 01", ]
+
 
 ####Test ASVs ----
 
@@ -45,14 +55,27 @@ funi_df<- t(pc_FUN)
 matrix_F = pc_FUN[ ,8:366]
 
 ### Make the equation. Saying we want to examine specific column of metadata
-time_a_F = pc_FUN$TreatmentxAge
+time_a_F = pc_FUN$Treatment
 
 ### Run test 
 inv_F = multipatt(matrix_F, time_a_F, func = "r.g", control = how(nperm=9999))
-summary(inv_F)
+results <- summary(inv_F)
 
 ###Example of using the data data but testing different variables (from metadata)
 
 trt_a_F = pc_FUN$Treatment
 Just_trt_inv_F = multipatt(matrix_F, trt_a_F, func = "r.g", control = how(nperm=9999))
 summary(Just_trt_inv_F)
+
+#subset data
+
+data_table <- subset_samples(data_table, !Age %in% c("Spat", "Day 03", "Day 06", "Day 15"))
+
+#ASV7 and 18 unique to PB/PBH treatments
+#plotting ASV 7 and 18
+
+library(ggplot2)
+
+
+p <- ggplot(data_table, aes(x=Treatment, y=ASV18, fill=Treatment)) + # fill=name allow to automatically dedicate a color for each group
+  geom_violin() + theme_classic()

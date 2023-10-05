@@ -256,5 +256,3 @@ plot_bar(pseq_filtered, x="Treatment", fill="Genus") + geom_bar(aes(color=Genus,
   strip.text = element_text(size = 10)   
 ) + scale_x_discrete(labels = c("Control", "High temperature", "Probiotics", "Probiotics + HT", "Algae")) + labs(y = "Abundance", x = " ")
 
-
-  
