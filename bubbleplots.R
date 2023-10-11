@@ -15,7 +15,7 @@ library(ggplot2)
 
 Marissa_MU42022_rare <- readRDS("~/GitHub/mb2021_phyloseq/Marissa_MU42022_rare.rds")
 
-pseq <-  Marissa_MU42022_rare
+pseq <-  Marissa_MU42022_rare_nochloro
 
 #Create objects ----
 
@@ -75,7 +75,7 @@ pseq.phy.rel <- microbiome::transform(pseq_phy, "compositional")
 
 pseq.gen.rel <- microbiome::transform(pseq_gen, "compositional")
 
-pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 95/100)
 
 pseq.core <- microbiome::transform(pseq.core, "compositional")
 
@@ -94,9 +94,9 @@ pseq.core <- microbiome::transform(pseq.core, "compositional")
 
 set.seed(4235421)
 
-ord <- ordinate(pseq.core, "MDS", "bray")
+ord <- ordinate(pseq, "MDS", "bray")
 
-plot_ordination(pseq.core, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
 
 
 #psmelt ----
@@ -230,9 +230,9 @@ if (file.exists(file_path)) {
 
 ###pseq ----
 
-ggplot(pseq, aes(x=Treatment, y="ASV10", size = Abundance, color = "ASV10")) + 
+ggplot(pseq_core, aes(x=Treatment, y=OTU, size = Abundance, color = Family)) + 
   geom_point(alpha=0.7)+ 
-  scale_size(range = c(.1, 10)) +
+  scale_size(range = c(.3, 12)) +
   scale_colour_ipsum() +
   theme_ipsum() +
   theme(legend.position="bottom") +
