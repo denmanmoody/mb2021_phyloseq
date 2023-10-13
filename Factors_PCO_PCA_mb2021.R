@@ -1,93 +1,132 @@
 ##take out Spat samples from data - rerun PCOA-MDS script
 #as well, later on, take out F2,3,4 and only analyze F1 data
 
+
+##### 00. Front Matter #####
+# Clear space
+# rm(list=ls())
+
+## Load libraries
 library("devtools")
 library(phyloseq)
 library(microbiome)
 
-##set wd
-
+## setwd
 setwd("C:/Users/maris/OneDrive/Documents/USRA2021/mb2021/Data")
 
-#load data
+##### 01. Load data #####
+data <- readRDS("~/GitHub/mb2021_phyloseq/Marissa_MU42022_rare_nochloro.rds")
+pseq <- data
 
-Marissa_Oyster <- Rare_filtered_data
+# Different project
+#Marissa_Oyster <- Rare_filtered_data
 
-pseq <- Marissa_Oyster
 
+##### 02. Analysis #####
+head(pseq@sam_data)
+str(pseq@sam_data)
+unique(pseq@sam_data$Age)
 
 # Remove "spat" samples from the phyloseq object - watch, the subset samples fxn is case sensitive
+# tolower can be used to convert all Spat to spat
+pseq
+pseq.nospat <- subset_samples(pseq, !(Age %in% c("Spat")))
+pseq.nospat
 
-pseq_filtered <- subset_samples(Marissa_Oyster, !(Age %in% c("spat")))
 
-pseq_fam <- microbiome::aggregate_rare(pseq_filtered, level = "Family", detection = 50/100, prevalence = 70/100)
-#convert to compositional data
-
-pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
-
-pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
-
-pseq.core <- microbiome::transform(pseq.core, "compositional")
+pseq.spat   <- subset_samples(pseq, (Age %in% c("Spat")))
+pseq.spat
 
 set.seed(4235421)
+?ordinate()
+ord <- ordinate(pseq.spat, "MDS", "bray")
+names(ord)
 
-ord <- ordinate(pseq_filtered, "MDS", "bray")
+# plot MDS/PcoA
+p <- plot_ordination(pseq.spat, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
+p <- p + scale_colour_manual(values = c("#F8766D", "#00BFC4", "#C77CFF"))
+p
 
-#plot MDS/PcoA
 
-plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") + geom_point(size = 4)
+## Answer key
+# scale_fill_manual(values = c("#F8766D", "#7CAE00", "#00BFC4", "#C77CFF"))
 
-plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") +
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
   geom_point(size = 4) +
-  scale_color_manual(values = custom_color_palette, labels = c("Control", "High Salinity", "Low Salinity")) +
-  scale_shape_manual(values = c("day_1" = 16, "day_18" = 17), 
-                     labels = c("Day 1", "Day 18")) + theme_bw()
+  theme_classic()
 
-#WITH ELLIPSES - ALL LARVAE
+#WITH ELLIPSES - ALL LARVAE ----
 
-plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") +
-  geom_point(size = 4) +
-  ggalt::geom_encircle(aes(fill = Tank_treatment), color = "black", expand = 0.2, alpha = 0.2) +
-  scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8"), labels = c("Control", "High Salinity", "Low Salinity")) +
-  scale_shape_manual(values = c("day_1" = 16, "day_18" = 17), 
-                     labels = c("Day 1", "Day 18"))
-
-##look at only Day 1 samples
-
-
-# Remove spat", day 18 samples from the phyloseq object - watch, the subset samples fxn is case sensitive
-#DAY 1 ONLY
-
-pseq_filtered <- subset_samples(pseq, !(Age %in% c("Day 03", "Day 06", "Day 08", "Day 10", "Day 15")))
-
-
-pseq_fam <- microbiome::aggregate_rare(pseq_filtered, level = "Family", detection = 50/100, prevalence = 70/100)
-#convert to compositional data
-
-pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
-
-pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
-
-pseq.core <- microbiome::transform(pseq.core, "compositional")
-
-set.seed(4235421)
-
-ord <- ordinate(pseq_filtered, "MDS", "bray")
-
-#plot MDS/PcoA
-
-plot_ordination(pseq_filtered, ord, color = "Treatment", shape = "Age") + geom_point(size = 4) + theme_classic()
-
-plot_ordination(pseq_filtered, ord, color = "Treatment", shape = "Age") +
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
   geom_point(size = 4) +
   ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
-  scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8", "orange", "purple"), labels = c("Antibiotics", "Antibiotics + HT", "Control", "High temperature (HT)", "Algae")) +
-  scale_shape_manual(values = c("Day 01" = 16), 
-                     labels = c("Day 01")) + theme_bw()
+  theme_classic() 
+
+?ggalt::geom_encircle
+
+
+pseq_fam <- microbiome::aggregate_rare(pseq, level = "Family", detection = 50/100, prevalence = 70/100)
+
+#convert to compositional data
+
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq, "MDS", "bray")
+
+#plot MDS/PcoA
+
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
+
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
+  geom_point(size = 4) +
+  theme_classic()
+
+#WITH ELLIPSES - ALL LARVAE ----
+
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic() 
+
+
+#DAY 1 ONLY, no algae ----
+
+pseq <- subset_samples(pseq, !(Age %in% c("Day 03", "Day 06", "Day 15", "Spat")))
+
+pseq <- subset_samples(pseq, !(Sample.type %in% "Algae"))
+
+
+pseq_fam <- microbiome::aggregate_rare(pseq,level = "Family", detection = 50/100, prevalence = 70/100)
+#convert to compositional data
+
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq, "MDS", "bray")
+
+#plot MDS/PcoA
+
+plot_ordination(pseq, ord, color = "Treatment") + geom_point(size = 4) + theme_classic()
+
+plot_ordination(pseq, ord, color = "Treatment") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic()
 
 
 
-##remove spat, day 1, and day 18 = DAY 18 SAMPLES ONLY
+##remove spat, day 1, and day 18 = DAY 18 SAMPLES ONLY ----
 
 pseq_filtered <- subset_samples(Marissa_Oyster, !(Age %in% c("spat", "day_1")))
 
@@ -111,7 +150,7 @@ plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") +
   scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8"), labels = c("Control", "High salinity", "Low salinity")) +
   scale_shape_manual(values = c("day_18" = 17), labels = c("Day 18")) + theme_bw()
 
-##remove DAY 3, day 1, and day 18 = sPAT SAMPLES ONLY
+##remove DAY 3, day 1, and day 18 = sPAT SAMPLES ONLY ----
 
 pseq_filtered <- subset_samples(Marissa_Oyster, !(Age %in% c("day_18", "day_1")))
 
@@ -135,7 +174,7 @@ plot_ordination(pseq_filtered, ord, color = "Tank_treatment", shape = "Age") +
   scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8"), labels = c("Control", "High salinity", "Low salinity")) +
   scale_shape_manual(values = c("spat" = 3), labels = c("Spat")) + theme_bw()
 
-##all samples PCO with ellipses
+##all samples PCO with ellipses ----
 
 
 
@@ -166,6 +205,13 @@ plot_ordination(pseq, ord, color = "Tank_treatment", shape = "Age") +
   scale_color_manual(values = c("#E41A1C", "#4DAF4A", "#377EB8"), labels = c("Control", "High salinity", "Low salinity")) +
   scale_shape_manual(values = c("day_1" = 16, "day_18" = 17, "day_3" = 15, "spat" = 3), 
                      labels = c("Day 1", "Day 18", "Day 3", "Spat")) + theme_bw()
+
+
+
+
+
+
+
 
 
 ##issue with comparing multiple plot ordinations = age groups have varying number of samples = we can't know if plot ordination is an artificate of the microbiome data itself OR number of samples
