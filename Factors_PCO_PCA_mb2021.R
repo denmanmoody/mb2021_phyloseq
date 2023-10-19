@@ -15,8 +15,8 @@ library(microbiome)
 setwd("C:/Users/maris/OneDrive/Documents/USRA2021/mb2021/Data")
 
 ##### 01. Load data #####
-data <- readRDS("~/GitHub/mb2021_phyloseq/Marissa_MU42022_rare_nochloro.rds")
-pseq <- data
+#data <- readRDS("~/GitHub/mb2021_phyloseq/Marissa_MU42022.rds")
+pseq <- Marissa_MU42022_rarefied_20231016
 
 # Different project
 #Marissa_Oyster <- Rare_filtered_data
@@ -27,47 +27,12 @@ head(pseq@sam_data)
 str(pseq@sam_data)
 unique(pseq@sam_data$Age)
 
-# Remove "spat" samples from the phyloseq object - watch, the subset samples fxn is case sensitive
-# tolower can be used to convert all Spat to spat
-pseq
-pseq.nospat <- subset_samples(pseq, !(Age %in% c("Spat")))
-pseq.nospat
-
-
-pseq.spat   <- subset_samples(pseq, (Age %in% c("Spat")))
-pseq.spat
-
-set.seed(4235421)
-?ordinate()
-ord <- ordinate(pseq.spat, "MDS", "bray")
-names(ord)
-
-# plot MDS/PcoA
-p <- plot_ordination(pseq.spat, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
-p <- p + scale_colour_manual(values = c("#F8766D", "#00BFC4", "#C77CFF"))
-p
-
-
-## Answer key
-# scale_fill_manual(values = c("#F8766D", "#7CAE00", "#00BFC4", "#C77CFF"))
-
-plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
-  geom_point(size = 4) +
-  theme_classic()
-
-#WITH ELLIPSES - ALL LARVAE ----
-
-plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
-  geom_point(size = 4) +
-  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
-  theme_classic() 
-
-?ggalt::geom_encircle
-
-
-pseq_fam <- microbiome::aggregate_rare(pseq, level = "Family", detection = 50/100, prevalence = 70/100)
+#ALL samples ----
+#reset pseq
 
 #convert to compositional data
+
+pseq_fam <- microbiome::aggregate_rare(pseq,level = "Family", detection = 50/100, prevalence = 70/100)
 
 pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
 
@@ -87,17 +52,176 @@ plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
   geom_point(size = 4) +
   theme_classic()
 
-#WITH ELLIPSES - ALL LARVAE ----
+plot_ordination(pseq, ord, color = "Treatment") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic() 
 
-plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
+?ggalt::geom_encircle
+
+
+
+#All larvae ----
+# watch, the subset samples fxn is case sensitive
+# "tolower" fxn can be used to convert all Spat to spat (all uppercase to lowercase)
+
+pseq
+pseq.nospat <- subset_samples(pseq, !(Age %in% c("Spat")))
+pseq.nospat
+
+#also remove algae
+
+pseq.nospat <- subset_samples(pseq.nospat, !(Sample.type %in% c("Algae")))
+
+#composition
+pseq_fam <- microbiome::aggregate_rare(pseq.nospat, level = "Family", detection = 50/100, prevalence = 70/100)
+
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq.core, "MDS", "bray")
+
+plot_ordination(pseq.core, ord, color = "Treatment", shape = "Age") + geom_point(size = 4)
+
+plot_ordination(pseq.core, ord, color = "Treatment", shape = "Age") +
+  geom_point(size = 4) +
+  theme_classic()
+
+plot_ordination(pseq.core, ord, color = "Treatment", shape = "Age") +
   geom_point(size = 4) +
   ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
   theme_classic() 
 
 
+#Spat only ----
+pseq <- Marissa_MU42022_rarefied_20231016
+
+pseq <- subset_samples(pseq, !(Age %in% c("Day 03", "Day 06", "Day 15", "Day 01")))
+
+pseq <- subset_samples(pseq, !(Sample.type %in% "Algae"))
+
+
+pseq_fam <- microbiome::aggregate_rare(pseq,level = "Family", detection = 50/100, prevalence = 70/100)
+#convert to compositional data
+
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq.core, "MDS", "bray")
+
+#plot MDS/PcoA
+
+plot_ordination(pseq, ord, color = "Treatment") + geom_point(size = 4) + theme_classic()
+
+plot_ordination(pseq, ord, color = "Treatment") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic()
+
+# plot MDS/PcoA
+
+p <- plot_ordination(pseq.core, ord, color = "Treatment") + geom_point(size = 4)
+p <- p + scale_colour_manual(values = c("#F8766D", "#00BFC4", "#C77CFF"))
+p <- p +
+  ggalt::geom_encircle(aes(fill = "Treatment", colour = c("#F8766D", "#00BFC4", "#C77CFF")), color = "black", expand = 0.2, alpha = 0.2) 
+
+theme_classic()
+p
+
+## Answer key colour ----
+# scale_fill_manual(values = c("#F8766D", "#7CAE00", "#00BFC4", "#C77CFF"))
+
+plot_ordination(pseq, ord, color = "Treatment", shape = "Age") +
+  geom_point(size = 4) +
+  theme_classic()
+
+
 #DAY 1 ONLY, no algae ----
 
+#reload data
+
+pseq <- Marissa_MU42022_rarefied_20231016
+
 pseq <- subset_samples(pseq, !(Age %in% c("Day 03", "Day 06", "Day 15", "Spat")))
+
+pseq <- subset_samples(pseq, !(Sample.type %in% "Algae"))
+
+
+pseq_fam <- microbiome::aggregate_rare(pseq,level = "Family", detection = 50/100, prevalence = 70/100)
+#convert to compositional data
+
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq.core, "MDS", "bray")
+
+#plot MDS/PcoA
+
+plot_ordination(pseq.core, ord, color = "Treatment") + geom_point(size = 4) + theme_classic()
+
+plot_ordination(pseq.core, ord, color = "Treatment") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic()
+
+
+#DAY 3 ONLY, no algae ----
+
+#reload data
+
+pseq <- Marissa_MU42022_rarefied_20231016
+
+pseq <- subset_samples(pseq, !(Age %in% c("Day 01", "Day 06", "Day 15", "Spat")))
+
+pseq <- subset_samples(pseq, !(Sample.type %in% "Algae"))
+
+
+pseq_fam <- microbiome::aggregate_rare(pseq,level = "Family", detection = 50/100, prevalence = 70/100)
+#convert to compositional data
+
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq.core, "MDS", "bray")
+
+#plot MDS/PcoA
+
+plot_ordination(pseq.core, ord, color = "Treatment") + geom_point(size = 4) + theme_classic()
+
+plot_ordination(pseq.core, ord, color = "Treatment") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic()
+
+
+
+#DAY 6 ONLY, no algae ----
+
+#reload data
+
+pseq <- Marissa_MU42022_rarefied_20231016
+
+pseq <- subset_samples(pseq, !(Age %in% c("Day 01", "Day 03", "Day 15", "Spat")))
 
 pseq <- subset_samples(pseq, !(Sample.type %in% "Algae"))
 
@@ -124,11 +248,52 @@ plot_ordination(pseq, ord, color = "Treatment") +
   ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
   theme_classic()
 
+#DAY 15 ONLY, no algae ----
+
+#reload data
+
+pseq <- Marissa_MU42022_rarefied_20231016
+
+pseq <- subset_samples(pseq, !(Age %in% c("Day 01", "Day 03", "Day 06", "Spat")))
+
+pseq <- subset_samples(pseq, !(Sample.type %in% "Algae"))
 
 
-##remove spat, day 1, and day 18 = DAY 18 SAMPLES ONLY ----
+pseq_fam <- microbiome::aggregate_rare(pseq,level = "Family", detection = 50/100, prevalence = 70/100)
+#convert to compositional data
 
-pseq_filtered <- subset_samples(Marissa_Oyster, !(Age %in% c("spat", "day_1")))
+pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
+
+pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+
+pseq.core <- microbiome::transform(pseq.core, "compositional")
+
+set.seed(4235421)
+
+ord <- ordinate(pseq.core, "MDS", "bray")
+
+#plot MDS/PcoA
+
+plot_ordination(pseq.core, ord, color = "Treatment") + geom_point(size = 4) + theme_classic()
+
+plot_ordination(pseq.core, ord, color = "Treatment") +
+  geom_point(size = 4) +
+  ggalt::geom_encircle(aes(fill = Treatment), color = "black", expand = 0.2, alpha = 0.2) +
+  theme_classic()
+
+
+
+
+
+
+
+#below code for Marissa MB2021 project
+
+##DAY 18 SAMPLES ONLY ----
+
+pseq_filtered <- subset_samples(Marissa_Oyster, !(Age %in% c("Spat", "Day 1", "Day 3", "Day 6")))
+
+pseq_filtered <- subset_samples(Marissa_Oyster, !(Sample.type %in% c("Algae")))
 
 
 pseq_fam <- microbiome::aggregate_rare(pseq_filtered, level = "Family", detection = 50/100, prevalence = 70/100)

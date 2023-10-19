@@ -13,9 +13,9 @@ library(ggplot2)
 
 #Load data ----
 
-Marissa_MU42022_rare <- readRDS("~/GitHub/mb2021_phyloseq/Marissa_MU42022_rare.rds")
+Marissa_MU42022_rarefied_20231016 <- readRDS("~/GitHub/mb2021_phyloseq/Marissa_MU42022_rarefied_20231016.rds")
 
-pseq <-  Marissa_MU42022_rare_nochloro
+pseq <-  Marissa_MU42022_rarefied_20231016
 
 #Create objects ----
 
