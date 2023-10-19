@@ -1,6 +1,6 @@
 ##testing MDJ.rds data
 
-
+setwd("/Users/denmanmoody/Documents/GitHub/mb2021_phyloseq")
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
@@ -10,19 +10,9 @@ library("devtools")
 library(phyloseq)
 library(microbiome)
 
-pseq<- readRDS("Marissa_.rds")
-
-pseq <- Marissa_MU42022_rare_nochloro
+pseq<- readRDS("Denman_samples.rds")
 
 pseq
-
-##Want to seperate Marissa's and James' samples
-
-excluded_samples <-
-
-Rare_filtered <- Rare[, !colnames(Rare) %in% excluded_samples]
-
-
 
 #create objects
 
@@ -43,9 +33,13 @@ pseq2 <- subset_taxa(pseq1,Order!="o__Mitochondria")
 
 ps1 <- subset_taxa(pseq2,Kingdom!="k__Archaea")
 
+View(ps1@tax_table)
+
 #chloroplast still in data under order level - remove?
 
 pseq1 <- subset_taxa(pseq,Order!="Chloroplast")
+
+pseq2 <- subset_taxa(pseq,Family!="Mitochondria")
 
 ps1 <- pseq1
 
@@ -54,21 +48,19 @@ rank_names(ps1)
 
 
 ###remove low prev
-
-plot(sort(taxa_sums(x2), TRUE), type="h", ylim=c(0, 10000))
-
 x1 = prune_taxa(taxa_sums(ps1) > 200, ps1) 
 x2 = prune_taxa(taxa_sums(ps1) > 500, ps1) 
 x3 = prune_taxa(taxa_sums(ps1) > 1000, ps1)
 
+plot(sort(taxa_sums(x2), TRUE), type="h", ylim=c(0, 10000))
 ##using x2
 
 library(microbiome)
 summarize_phyloseq(ps1)
 summarize_phyloseq(x2)
 
+###############################
 
-*************************************************
 #rarify - removing abundance code with below code does not seem to work...not sure why. Ignore for now.
 
 sequence_abundance <- taxa_sums(ps1)
@@ -85,15 +77,16 @@ physeq_rarified
 keepTaxa = rownames(prevdf1)[(prevdf1$Prevalence >= prevalenceThreshold)]
 ps2 = prune_taxa(keepTaxa, ps1)
 
-*************************************************
+
 
 ##rarify data to make sequences an even read depth - selecting read depth of 10,000 = any samples with fewer than 10,000 total reads will be removed, all samples will be equalized to 5000 reads for Denman's samples, 10,000 for Marissa/James'
 
 Rare <-rarefy_even_depth(x2, sample.size= 5000)
-
+Rare
 #Marissa/James = 17 samples removed because they contained fewer reads than `sample.size' - first 5 reads are T13-1,T13-2-2,T14-2-2,T15-S-1,T16-10-r3
 
 ##check if seq depth is 10,000 or 5,000
+sample_depths1 <- sample_sums(ps1)
 
 sample_depths <- sample_sums(Rare)
 
@@ -104,6 +97,9 @@ print(sample_depths)
 ##rename Rare to ps1
 
 ps1 <- Rare
+
+saveRDS(ps1, file="Denman_Samples_Rare.rds")
+##################################
 
 ###calculate relative abundance at family, phylum, and genus level.
 
