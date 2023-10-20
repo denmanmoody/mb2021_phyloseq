@@ -10,9 +10,16 @@ library("devtools")
 library(phyloseq)
 library(microbiome)
 
+##### Error message that ggplot2 needed to be unloaded and reinstalled -- Fixed by:
+remove.packages("ggplot2")
+remove.packages("microbiome")
+
 pseq<- readRDS("Denman_samples.rds")
 
 pseq
+
+## View sample data
+summarize_phyloseq(pseq)
 
 #create objects
 
@@ -20,7 +27,7 @@ OTU = pseq@otu_table
 Tax = pseq@tax_table
 Metadata = pseq@sam_data
 
-# check if any OTUs are not present in any samples
+# check if any OTUs are not present in any samples (if any OTU slots are empty)
 any(taxa_sums(pseq) == 0)
 
 #source for removing chloro/mito/archaea; https://mibwurrepo.github.io/R_for_Microbial_Ecology/Microbiome_tutorial_V2.html#making-a-phyloseq-object
@@ -31,18 +38,22 @@ pseq1 <- subset_taxa(pseq,Class!="c__Chloroplast")
 
 pseq2 <- subset_taxa(pseq1,Order!="o__Mitochondria")
 
-ps1 <- subset_taxa(pseq2,Kingdom!="k__Archaea")
+ps1 <- subset_taxa(pseq2,Kingdom!="Archaea")
 
 View(ps1@tax_table)
 
 #chloroplast still in data under order level - remove?
 
-pseq1 <- subset_taxa(pseq,Order!="Chloroplast")
+pseq3 <- subset_taxa(ps1,Order!="Chloroplast")
 
-pseq2 <- subset_taxa(pseq,Family!="Mitochondria")
+pseq4 <- subset_taxa(pseq3,Family!="Mitochondria")
 
-ps1 <- pseq1
+View(pseq4@tax_table)
 
+#Rename pseq4 to ps1 to use with the rest of the code
+ps1 <- pseq4
+
+#Making sure ranking are capitalized....???
 rank_names(ps1)
 
 
@@ -52,7 +63,7 @@ x1 = prune_taxa(taxa_sums(ps1) > 200, ps1)
 x2 = prune_taxa(taxa_sums(ps1) > 500, ps1) 
 x3 = prune_taxa(taxa_sums(ps1) > 1000, ps1)
 
-plot(sort(taxa_sums(x2), TRUE), type="h", ylim=c(0, 10000))
+plot(sort(taxa_sums(ps1), TRUE), type="h", ylim=c(0, 10000))
 ##using x2
 
 library(microbiome)
