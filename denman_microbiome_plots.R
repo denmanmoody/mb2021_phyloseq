@@ -7,7 +7,7 @@ library(microbiome)
 #Load data ----
 setwd("/Users/denmanmoody/Documents/GitHub/mb2021_phyloseq")
 
-pseq<- readRDS("Denman_Samples_Rare.rds")
+pseq<- readRDS("Denman_Samples_Rare_FINAL.rds")
 
 #Create objects ----
 
