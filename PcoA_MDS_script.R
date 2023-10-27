@@ -49,12 +49,7 @@ pseq <- readRDS("James_MU42022.rds")
 
 pseq <- James_MU42022
 
-#Create objects ----
 
-OTU = pseq@otu_table
-Tax = pseq@tax_table
-Metadata = pseq@sam_data
-Tree = pseq@phy_tree
 
 #Rarify data ----
 #Only do this if rarefication has not already been done.
@@ -148,6 +143,8 @@ pseq_phy <- microbiome::aggregate_rare(pseq, level = "Phylum", detection = 50/10
 
 pseq_gen <- microbiome::aggregate_rare(pseq, level = "Genus", detection = 50/100, prevalence = 70/100)
 
+
+
 #convert to compositional data
 
 pseq.fam.rel <- microbiome::transform(pseq_fam, "compositional")
@@ -156,26 +153,48 @@ pseq.phy.rel <- microbiome::transform(pseq_phy, "compositional")
 
 pseq.gen.rel <- microbiome::transform(pseq_gen, "compositional")
 
-pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
+pseq_core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
 
-pseq.core <- microbiome::transform(pseq.core, "compositional")
+pseq.core <- microbiome::transform(pseq_core, "compositional")
 
 
+##################################################
 
-#PERMANOVA ----
+######### PERMANOVA ----
 #source: https://microbiome.github.io/tutorials/PERMANOVA.html
 
 
 #if any columns have missing values (NA), must remove
 
-pseq_filtered <- subset_samples(pseq.fam.rel, !Treatment %in% "NA")
+summarize_phyloseq(pseq)
 
-Meta <- subset(Metadata, !is.na(Treatment))
+pseq_filtered <- subset_samples(pseq, !Family.1 %in% NA)
+
+View(pseq_filtered@sam_data)
+
+set.seed(423542)
+
+Bray_dist<- phyloseq::distance(pseq_filtered, method = "bray", weighted = TRUE)
+
+Sample_star <- data.frame(sample_data(pseq_filtered))
+
+Test_bray <- adonis2(Bray_dist ~ Family.1*Factor, data = Sample_star)
+
+Test_bray2 <- adonis2(Bray_dist ~ Factor*Family.1, data = Sample_star)
+
+##################################################
 
 
-Meta <- meta(pseq.fam.rel)
-permanova <- adonis2(t(OTU) ~ Treatment*Age*Genetics,
-                     data = pseq.fam.rel, permutations=999, method = "bray")
+#Create objects ----
+
+OTU = pseq@otu_table
+Tax = pseq@tax_table
+Metadata = pseq@sam_data
+Tree = pseq@phy_tree
+
+
+permanova <- adonis2(t(OTU) ~ Factor*Family.1,
+                     data = pseq, permutations=999, method = "bray")
 
 # P-value
 print(as.data.frame(permanova$aov.tab)["Tank_treatment", "Pr(>F)"])

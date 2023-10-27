@@ -7,7 +7,11 @@ library(microbiome)
 #Load data ----
 setwd("/Users/denmanmoody/Documents/GitHub/mb2021_phyloseq")
 
+### To pull saved rarified samples
 pseq<- readRDS("Denman_Samples_Rare_FINAL.rds")
+
+## View sample data
+summarize_phyloseq(pseq)
 
 #Create objects ----
 
@@ -215,10 +219,10 @@ plot_bar(top10P, x="Factor", fill="Family", facet_grid = ~Family) + geom_bar(aes
 ###GENUS LEVEL ----
 ###GENUS LEVEL - TOTAL ABUNDANCE - TOP 10 GENERA
 
-#Sort genera by total total abundance and pick the top 10
+#Sort genera by total abundance and pick the top 9
 top9P.names = sort(tapply(taxa_sums(pseq), tax_table(pseq)[, "Genus"], sum), TRUE)[1:9]
 
-#Cut down the physeq data to only the top 15 genera
+#Cut down the physeq data to only the top 9 genera
 top9P = subset_taxa(pseq, Genus %in% names(top9P.names))
 
 #Plot of fouled vs non-fouled scallops with bar graph showing top 10 genera in STACKED bar
@@ -307,9 +311,7 @@ plot_heatmap(top20OTU)
 
 plot_heatmap(top20OTU, sample.label="Factor", sample.order="Factor")
 
-########################################################
-#QUESTION FOR ANDY - When I plot this it shows mitochondria as one of the taxa but I thought we took these out when we filtered the data?
-########################################################
+
 
 
 

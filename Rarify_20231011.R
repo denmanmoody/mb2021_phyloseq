@@ -156,7 +156,7 @@ ord <- ordinate(ps5, "MDS", "bray")
 #plot MDS/PcoA - can set "colour" and "shape" for any of your variables
 #geompoint controls data point size on plot
 
-plot_ordination(ps5, ord, color = "Sample.ID", shape = "Factor") + geom_point(size = 4)
+plot_ordination(ps5, ord, color = "Family.1", shape = "Factor") + geom_point(size = 4)
 
 plot_ordination(ps5, ord, color = "Factor", shape = "Sample.ID") + geom_point(size = 4) + scale_shape_binned()
 
@@ -164,7 +164,7 @@ plot_ordination(ps5, ord, color = "Factor", shape = "Sample.ID") + geom_point(si
 ps5@sam_data$Family.1 <- as.character(ps5@sam_data$Family.1)
 
 
-plot_ordination(ps5, ord, color = "Factor", shape = "Family.1") + geom_point(size = 4)
+plot_ordination(ps5, ord, color = "Family.1", shape = "Factor") + geom_point(size = 4)
 
 plot_ordination(ps5, ord, color = "Factor") + geom_point(size = 4)
 
@@ -180,4 +180,34 @@ plot_ordination(ps5, ord, color = "Treatment", shape = "Age") + geom_point(size 
 p <- plot_ordination(ps5, ord, color = "Factor") + geom_point(size = 4)
 
 
+######### PERMANOVA ----
+#source: https://microbiome.github.io/tutorials/PERMANOVA.html
 
+
+#if any columns have missing values (NA), must remove
+
+summarize_phyloseq(pseq)
+
+pseq_filtered <- subset_samples(pseq, !Family.1 %in% NA)
+
+View(pseq_filtered@sam_data)
+
+set.seed(423542)
+
+Bray_dist<- phyloseq::distance(pseq_filtered, method = "bray", weighted = TRUE)
+
+Sample_star <- data.frame(sample_data(pseq_filtered))
+
+Test_bray <- adonis2(Bray_dist ~ Family.1*Factor, data = Sample_star)
+
+Test_bray2 <- adonis2(Bray_dist ~ Factor*Family.1, data = Sample_star)
+
+
+#############################################
+
+
+### To pull saved rarified samples
+ps5<- readRDS("Denman_Samples_Rare_FINAL.rds")
+
+## View sample data
+summarize_phyloseq(ps5)
