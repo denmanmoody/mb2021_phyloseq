@@ -3,6 +3,7 @@
 library("devtools")
 library(phyloseq)
 library(microbiome)
+library(ggplot2)
 
 #Load data ----
 setwd("/Users/denmanmoody/Documents/GitHub/mb2021_phyloseq")
@@ -41,6 +42,7 @@ pseq.core <- core(pseq.fam.rel, detection = .1/100, prevalence = 90/100)
 
 pseq.core <- microbiome::transform(pseq.core, "compositional")
 
+##############################################################################
 
 ###PHYLUM LEVEL ----
 ###PHYLUM LEVEL - TOTAL ABUNDANCE
@@ -59,6 +61,13 @@ top5P = subset_taxa(pseq, Phylum %in% names(top5P.names))
 
 plot_bar(top5P, x="Factor", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + labs(y = "Total Abundance")
 
+###NOTE: To remove the grey block background from the plot above, use the + theme_classic() code:
+
+plot_bar(top5P, x="Factor", fill="Phylum") + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + labs(y = "Total Abundance") + theme_classic()
+
+
+####################
+
 #Plot of fouled vs non-fouled scallops with bar graph with top 5 phyla separated into their bar graphs
 
 plot_bar(top5P, x="Factor", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") + labs(y = "Total Abundance") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(
@@ -68,6 +77,7 @@ plot_bar(top5P, x="Factor", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(
 
 
 
+##############################################################################
 
 ###PHYLUM LEVEL - RELATIVE ABUNDANCE
 # instead of using pseq (total abundance) plot with pseq.fam.rel (relative abundance at Family level)
@@ -93,7 +103,7 @@ plot_bar(top5P, x="Factor", fill="Phylum", facet_grid = ~Phylum) + geom_bar(aes(
 
 
 
-
+##############################################################################
 
 
 
@@ -137,6 +147,9 @@ plot_bar(top5P, x="Factor", fill="Family", facet_grid = ~Family) + geom_bar(aes(
   strip.text = element_text(size = 11)) 
 
 
+
+##############################################################################
+
 ###FAMILY LEVEL - TOTAL ABUNDANCE - TOP 10 FAMILIES
 
 #Sort the Families by total abundance and pick the top 10
@@ -162,6 +175,8 @@ plot_bar(top10P, x="Factor", fill="Family", facet_grid = ~Family) + geom_bar(aes
   strip.text = element_text(size = 11)) 
 
 
+##############################################################################
+
 
 ###FAMILY LEVEL - TOTAL ABUNDANCE - TOP 15 FAMILIES
 
@@ -185,6 +200,8 @@ plot_bar(top15P, x="Factor", fill="Family", facet_grid = ~Family) + geom_bar(aes
   axis.text.y = element_text(size = 12),
   strip.text = element_text(size = 11)) 
 
+
+##############################################################################
 
 
 ###FAMILY LEVEL - RELATIVE ABUNDANCE - TOP 10 FAMILIES
@@ -216,8 +233,10 @@ plot_bar(top10P, x="Factor", fill="Family", facet_grid = ~Family) + geom_bar(aes
 ########################################################
 
 
+##############################################################################
+
 ###GENUS LEVEL ----
-###GENUS LEVEL - TOTAL ABUNDANCE - TOP 10 GENERA
+###GENUS LEVEL - TOTAL ABUNDANCE - TOP 9 GENERA
 
 #Sort genera by total abundance and pick the top 9
 top9P.names = sort(tapply(taxa_sums(pseq), tax_table(pseq)[, "Genus"], sum), TRUE)[1:9]
@@ -229,9 +248,24 @@ top9P = subset_taxa(pseq, Genus %in% names(top9P.names))
 
 plot_bar(top9P, x="Factor", fill="Genus", facet_grid = ~Age) + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + labs(y = "Total Abundance", x = " ") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12), axis.text.y = element_text(size = 12), strip.text = element_text(size = 12))
 
-#Plot of fouled vs non-fouled scallops with bar graph with top 10 families separated into their bar graphs
+#Plot of fouled vs non-fouled scallops with bar graph with top 9 genera separated into their bar graphs
 
 plot_bar(top9P, x="Factor", fill="Genus", facet_grid = ~Genus) + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + labs(y = "Total Abundance", x = " ") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12), axis.text.y = element_text(size = 12), strip.text = element_text(size = 11))
+
+
+
+###GENUS LEVEL - RELATIVE ABUNDANCE - TOP 9 GENERA
+
+#Sort genera by relative abundance and pick the top 9
+top9P.names = sort(tapply(taxa_sums(pseq.gen.rel), tax_table(pseq.gen.rel)[, "Genus"], sum), TRUE)[1:9]
+
+#Cut down the physeq data to only the top 9 genera
+top9P = subset_taxa(pseq.gen.rel, Genus %in% names(top9P.names))
+
+#Plot of fouled vs non-fouled scallops with bar graph with top 9 genera separated into their bar graphs
+
+plot_bar(top9P, x="Factor", fill="Genus", facet_grid = ~Genus) + geom_bar(aes(color=Genus, fill=Genus), stat="identity", position="stack") + labs(y = "Relative Abundance", x = " ") + theme_bw() + theme(panel.grid = element_blank()) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12), axis.text.y = element_text(size = 12), strip.text = element_text(size = 11))
+
 
 
 #########################################################################
