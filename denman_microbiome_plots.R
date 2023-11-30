@@ -6,7 +6,7 @@ library(microbiome)
 library(ggplot2)
 
 #Load data ----
-setwd("/Users/denmanmoody/Documents/GitHub/mb2021_phyloseq")
+setwd("/Users/denmanmoody/Documents/GitHub/ssm_491_microbiome")
 
 ### To pull saved rarified samples
 pseq<- readRDS("Denman_Samples_Rare_FINAL.rds")
